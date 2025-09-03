@@ -1,0 +1,17 @@
+name: Test Dashboards
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Validate JSON
+        run: |
+          for file in dashboards/*.json; do
+            jq . "$file" || exit 1
+          done
