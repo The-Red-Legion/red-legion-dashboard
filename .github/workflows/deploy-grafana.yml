@@ -1,0 +1,20 @@
+name: Deploy Grafana
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      - run: |
+          gcloud run deploy grafana \
+            --image grafana/grafana:latest \
+            --region us-central1 \
+            --set-env-vars GF_DATABASE_TYPE=postgres,GF_DATABASE_HOST=${{ secrets.DATABASE_HOST }},GF_DATABASE_NAME=red_legion_event_db,GF_DATABASE_USER=event_user,GF_DATABASE_PASSWORD=\$(gcloud secrets versions access latest --secret=db-password) \
+            --allow-unauthenticated
